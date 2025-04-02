@@ -41,7 +41,7 @@ st.markdown("""
 # Load and prepare background data
 @st.cache_data
 def load_background_data():
-    df = pd.read_excel('data/sah_data.xlsx')  # Updated data file
+    df = pd.read_excel('data/SAH_data.xlsx')  # Updated data file
     return df[['CCL20', 'IL1R1', 'GLUL', 'MAFB', 'ARL4C', 
               'BLOC1S2', 'CFB', 'HSPA5', 'PTX3', 'APOD',
               'VEGFA', 'ANGPTL4', 'CP', 'ITGA10', 'LDB3',
