@@ -1,7 +1,7 @@
 ```markdown
-# Subarachnoid Hemorrhage Gene Analysis with SHAP Visualization
+# Epilepsy Gene Analysis with SHAP Visualization
 
-This Streamlit application provides interpretable SHAP analysis for Subarachnoid Hemorrhage risk prediction based on 20 key genes related to Subarachnoid Hemorrhage.
+This Streamlit application provides interpretable SHAP analysis for Epilepsy risk prediction based on 10 key genes related to Epilepsy.
 
 ```
 

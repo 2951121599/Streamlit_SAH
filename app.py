@@ -12,7 +12,7 @@ rcParams['font.size'] = 12
 
 # Set page config with custom icon
 st.set_page_config(
-    page_title="Subarachnoid Hemorrhage Analysis",
+    page_title="Epilepsy Analysis",
     page_icon="🧠",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -31,54 +31,51 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Title and introduction
-st.title("🧠 Subarachnoid Hemorrhage Risk Prediction")
+st.title("🧠 Epilepsy Risk Prediction")
 st.markdown("""
-    This tool uses transcriptome data to predict Subarachnoid Hemorrhage (SAH) risk and provides mechanistic insights 
+    This tool uses transcriptome data to predict Epilepsy risk and provides mechanistic insights 
     using SHAP (SHapley Additive exPlanations) visualizations. Adjust gene expression levels in the sidebar 
-    to explore their impact on cerebrovascular regulation and SAH risk.
+    to explore their impact on neuronal excitability and seizure susceptibility.
 """)
 
 # Load and prepare background data
 @st.cache_data
 def load_background_data():
-    df = pd.read_excel('data/SAH_data.xlsx')  # Updated data file
-    return df[['CCL20', 'IL1R1', 'GLUL', 'MAFB', 'ARL4C', 
-              'BLOC1S2', 'CFB', 'HSPA5', 'PTX3', 'APOD',
-              'VEGFA', 'ANGPTL4', 'CP', 'ITGA10', 'LDB3',
-              'SLC25A33', 'ZIC1', 'AMPD2', 'FTH1', 'KCMF1']]
+    df = pd.read_excel('data/Epilepsy_data.xlsx')  # 更新为癫痫数据文件
+    return df[['STXBP1', 'KCNQ2', 'CDKL5', 'GRIN2A', 'DEPDC5',
+              'GABRG2', 'SLC2A1', 'LGI1', 'TSC2', 'ARX']]
 
 # Load the pre-trained model
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model('data/SAH_MODEL.h5')  # Updated model file
+    return tf.keras.models.load_model('data/Epilepsy_MODEL.h5')  # 更新为癫痫模型
 
 # Initialize data and model
 background_data = load_background_data()
 model = load_model()
 
-# Default values for genes (example values, need to be adjusted based on actual data)
+# Default values for genes
 default_values = {
-    'CCL20': 145.6, 'IL1R1': 1817.0, 'GLUL': 265.4, 'MAFB': 1012.0, 'ARL4C': 376.9,
-    'BLOC1S2': 553.9, 'CFB': 224.1, 'HSPA5': 1103.0, 'PTX3': 1184.0, 'APOD': 83.09,
-    'VEGFA': 538.5, 'ANGPTL4': 802.7, 'CP': 388.0, 'ITGA10': 424.1, 'LDB3': 94.41,
-    'SLC25A33': 204.4, 'ZIC1': 226.4, 'AMPD2': 243.4, 'FTH1': 2111.0, 'KCMF1': 945.5
+    'STXBP1': 11.1724, 'KCNQ2': 7.85244, 'CDKL5': 8.42552,
+    'GRIN2A': 9.02267, 'DEPDC5': 6.97955, 'GABRG2': 9.65622,
+    'SLC2A1': 8.81985, 'LGI1': 7.56641, 'TSC2': 8.21817, 'ARX': 7.01142
 }
 
 # Sidebar configuration
 st.sidebar.header("🧬 Gene Expression Inputs")
-st.sidebar.markdown("Adjust expression levels of SAH-related genes:")
+st.sidebar.markdown("Adjust expression levels of epilepsy-related genes:")
 
 # Reset button
 if st.sidebar.button("Reset to Defaults", key="reset"):
     st.session_state.update(default_values)
 
-# Dynamic three-column layout for more genes
+# Dynamic two-column layout for 10 genes
 gene_features = list(default_values.keys())
 gene_values = {}
-cols = st.sidebar.columns(3)
+cols = st.sidebar.columns(2)  # 改为两列布局
 
 for i, gene in enumerate(gene_features):
-    with cols[i % 3]:
+    with cols[i % 2]:  # 按两列分布
         gene_values[gene] = st.number_input(
             gene,
             min_value=float(background_data[gene].min()),
@@ -100,7 +97,7 @@ if st.button("🔬 Analyze Gene Impacts", key="calculate"):
     # Prediction
     prediction = model.predict(input_df.values, verbose=0)[0][0]
     st.header("📈 Risk Prediction")
-    st.metric("SAH Risk Score", f"{prediction:.4f}", 
+    st.metric("Epilepsy Risk Score", f"{prediction:.4f}", 
              delta="High Risk" if prediction >= 0.5 else "Low Risk",
              delta_color="inverse")
     
@@ -126,33 +123,34 @@ if st.button("🔬 Analyze Gene Impacts", key="calculate"):
     with tab4:
         st.subheader("Mechanistic Insights")
         st.markdown("""
-        **Key SAH-related Pathways:**
-        - CCL20: Chemokine regulation in cerebrovascular inflammation
-        - VEGFA: Angiogenesis and vascular permeability
-        - HSPA5: Endoplasmic reticulum stress response
-        - FTH1: Iron metabolism and oxidative stress
+        **Key Epilepsy-related Pathways:**
+        - STXBP1: 突触囊泡对接和神经递质释放
+        - KCNQ2: 神经元膜电位调节（M电流）
+        - CDKL5: 神经发育和树突形成
+        - GRIN2A: NMDA受体介导的突触可塑性
+        - SLC2A1: 脑能量代谢（葡萄糖转运）
         """)
         importance_df = pd.DataFrame({'Gene': input_df.columns, 'SHAP Value': shap_values})
         importance_df = importance_df.sort_values('SHAP Value', ascending=False)
         st.dataframe(importance_df.style.background_gradient(cmap='coolwarm', subset=['SHAP Value']))
 
 # Update documentation
-with st.expander("📚 About This SAH Analysis", expanded=True):
+with st.expander("📚 About This Epilepsy Analysis", expanded=True):
     st.markdown("""
     ### Model Overview
-    This deep learning model analyzes 20 key genes involved in:
-    - Cerebrovascular regulation
-    - Blood-brain barrier integrity
-    - Inflammatory response
-    - Neurovascular coupling
+    本深度学习模型分析10个关键癫痫相关基因，涉及：
+    - 离子通道功能
+    - 突触传递调控
+    - 神经发育过程
+    - 脑能量代谢
     
-    ### SHAP Interpretation Guide
-    1. **Force Plot**: Shows the push-pull effect of each gene on risk score
-    2. **Waterfall Plot**: Step-by-step feature contribution visualization
-    3. **Decision Plot**: Cumulative effect visualization
-    4. **Mechanistic Insights**: Analysis combining SHAP values with known biological mechanisms
+    ### SHAP解释指南
+    1. **力导向图 (Force Plot)**：显示各基因对风险评分的推拉效应
+    2. **瀑布图 (Waterfall Plot)**：特征贡献的逐步可视化
+    3. **决策图 (Decision Plot)**：累积效应可视化
+    4. **机制解析 (Mechanistic Insights)**：结合SHAP值和已知生物学机制的分析
     """)
 
 # Footer
 st.markdown("---")
-st.markdown(f"Developed for Subarachnoid Hemorrhage Research | Updated: {pd.Timestamp.now().strftime('%Y-%m-%d')}")
+st.markdown(f"Developed for Epilepsy Research | Updated: {pd.Timestamp.now().strftime('%Y-%m-%d')}")
